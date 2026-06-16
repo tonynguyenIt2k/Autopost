@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>AutoPost Pro - Admin Dashboard</title>
+    <!-- Google Fonts & Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;900&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary": "#1000a9",
+                      "on-tertiary-fixed": "#2a1700",
+                      "primary-fixed": "#e1e0ff",
+                      "on-background": "#dae2fd",
+                      "outline": "#908fa0",
+                      "surface-container-low": "#131b2e",
+                      "surface": "#0b1326",
+                      "outline-variant": "#464554",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#00a572",
+                      "surface-variant": "#2d3449",
+                      "on-secondary-fixed": "#002113",
+                      "surface-container": "#171f33",
+                      "surface-container-lowest": "#060e20",
+                      "on-secondary-fixed-variant": "#005236",
+                      "on-surface-variant": "#c7c4d7",
+                      "on-primary-container": "#0d0096",
+                      "secondary-fixed-dim": "#4edea3",
+                      "on-tertiary": "#472a00",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "error": "#ffb4ab",
+                      "secondary": "#4edea3",
+                      "surface-tint": "#c0c1ff",
+                      "primary-container": "#8083ff",
+                      "surface-container-highest": "#2d3449",
+                      "surface-dim": "#0b1326",
+                      "on-primary-fixed-variant": "#2f2ebe",
+                      "primary": "#c0c1ff",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "on-secondary-container": "#00311f",
+                      "on-secondary": "#003824",
+                      "on-primary-fixed": "#07006c",
+                      "tertiary-fixed": "#ffddb8",
+                      "on-error": "#690005",
+                      "inverse-on-surface": "#283044",
+                      "secondary-fixed": "#6ffbbe",
+                      "inverse-primary": "#494bd6",
+                      "error-container": "#93000a",
+                      "background": "#0b1326",
+                      "inverse-surface": "#dae2fd",
+                      "on-tertiary-container": "#3e2400",
+                      "surface-bright": "#31394d",
+                      "tertiary": "#ffb95f",
+                      "tertiary-container": "#ca8100",
+                      "on-surface": "#dae2fd",
+                      "surface-container-high": "#222a3d",
+                      "primary-fixed-dim": "#c0c1ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "container-padding-desktop": "32px",
+                      "container-padding-mobile": "16px",
+                      "card-gap": "20px",
+                      "unit": "4px",
+                      "section-margin": "48px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "label-md": ["JetBrains Mono"],
+                      "headline-md": ["Hanken Grotesk"],
+                      "body-sm": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "headline-xl": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+        }
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+        .glass-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(11, 19, 38, 0.8) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Custom Animations */
+        @keyframes slideIn {
+            from { transform: translateY(12px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-background font-body-md text-on-surface">
+
+    <div id="root" class="flex w-full h-full"></div>
+
+    <!-- React and Babel Libs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCvxzc0u0lxvY5JxEIWKOp59pAGb78ocdA",
+            authDomain: "autopost-8f16e.firebaseapp.com",
+            databaseURL: "https://autopost-8f16e-default-rtdb.firebaseio.com",
+            projectId: "autopost-8f16e",
+            storageBucket: "autopost-8f16e.firebasestorage.app",
+            messagingSenderId: "213973905650",
+            appId: "1:213973905650:web:4875b21b380eda1a2de06b"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const rtdb = firebase.database();
+        const auth = firebase.auth();
+
+        // Bootstrapped Admin UIDs
+        const ADMIN_UIDS = [
+            "112937746933560753066", // Admin 1
+            "113264177727144211176"  // Admin 2
+        ];
+
+        function App() {
+            const [adminUser, setAdminUser] = useState(null);
+            const [users, setUsers] = useState([]);
+            const [tab, setTab] = useState('pending');
+            const [search, setSearch] = useState('');
+            const [filterPlan, setFilterPlan] = useState('all');
+            const [filterStatus, setFilterStatus] = useState('all');
+            const [loading, setLoading] = useState(false);
+            const [editModal, setEditModal] = useState(null);
+            const [toast, setToast] = useState(null);
+            const [settings, setSettings] = useState({
+                appName: 'AutoPost Pro',
+                logoUrl: '',
+                bankName: 'mbbank',
+                bankNo: '',
+                bankUser: '',
+                qrTemplate: ''
+            });
+
+            const [showAdminDropdown, setShowAdminDropdown] = useState(false);
+            const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+            const dropdownRef = useRef(null);
+
+            useEffect(() => {
+                function handleClickOutside(event) {
+                    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                        setShowAdminDropdown(false);
+                    }
+                }
+                document.addEventListener("mousedown", handleClickOutside);
+                return () => {
+                    document.removeEventListener("mousedown", handleClickOutside);
+                };
+            }, [dropdownRef]);
+
+            const showToast = (msg, type = 'success') => {
+                setToast({ msg, type });
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            // Dynamic Title Synchronization
+            useEffect(() => {
+                if (settings.appName) {
+                    document.title = `Quản trị - ${settings.appName}`;
+                }
+            }, [settings.appName]);
+
+            // Authentication state listener
+            useEffect(() => {
+                const unsub = auth.onAuthStateChanged(user => {
+                    if (user) {
+                        setLoading(true);
+                        rtdb.ref('users/' + user.uid).once('value').then(snapshot => {
+                            const val = snapshot.val();
+                            const isHardcodedAdmin = ADMIN_UIDS.includes(user.uid) || 
+                                user.providerData.some(p => ADMIN_UIDS.includes(p.uid));
+                                
+                            if ((val && val.role === 'admin') || isHardcodedAdmin) {
+                                setAdminUser(user);
+                            } else {
+                                showToast('⚠️ Tài khoản của bạn không có quyền truy cập trang quản trị!', 'error');
+                                auth.signOut();
+                                setAdminUser(null);
+                            }
+                            setLoading(false);
+                        }).catch(err => {
+                            console.error(err);
+                            showToast('Lỗi kiểm tra quyền hạn cơ sở dữ liệu!', 'error');
+                            setLoading(false);
+                        });
+                    } else {
+                        setAdminUser(null);
+                    }
+                });
+                return unsub;
+            }, []);
+
+            // Google login handler
+            const handleLogin = async () => {
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    await auth.signInWithPopup(provider);
+                } catch (e) {
+                    showToast('❌ Lỗi đăng nhập: ' + e.message, 'error');
+                }
+            };
+
+            // System Settings Listener
+            useEffect(() => {
+                if (!adminUser) return;
+                const settingsRef = rtdb.ref('settings');
+                const onSettingsVal = settingsRef.on('value', snapshot => {
+                    const val = snapshot.val();
+                    if (val) {
+                        setSettings({
+                            appName: val.appName || 'AutoPost Pro',
+                            logoUrl: val.logoUrl || '',
+                            bankName: val.bankName || 'mbbank',
+                            bankNo: val.bankNo || '',
+                            bankUser: val.bankUser || '',
+                            qrTemplate: val.qrTemplate || ''
+                        });
+                    }
+                });
+                return () => {
+                    settingsRef.off('value', onSettingsVal);
+                };
+            }, [adminUser]);
+
+            // Users synchronization listener
+            useEffect(() => {
+                if (!adminUser) return;
+                setLoading(true);
+                const usersRef = rtdb.ref('users');
+                const onValue = usersRef.on('value', snapshot => {
+                    const data = snapshot.val() || {};
+                    const list = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                    setUsers(list);
+                    setLoading(false);
+                }, err => {
+                    console.error(err);
+                    showToast('Lỗi kết nối Realtime Database!', 'error');
+                    setLoading(false);
+                });
+                return () => {
+                    usersRef.off('value', onValue);
+                };
+            }, [adminUser]);
+
+            // Computed Stats
+            const stats = useMemo(() => {
+                let total = users.length;
+                let pending = 0;
+                let active = 0;
+                let revenue = 0;
+
+                users.forEach(u => {
+                    const sub = u.subscription || {};
+                    if (sub.status === 'pending') pending++;
+                    if (sub.status === 'active') active++;
+                    
+                    (sub.history || []).forEach(h => {
+                        if (h.status === 'approved') {
+                            revenue += (h.amount || 0);
+                        }
+                    });
+                });
+
+                return { total, pending, active, revenue };
+            }, [users]);
+
+            // Filter logic
+            const filtered = useMemo(() => {
+                return users.filter(u => {
+                    const sub = u.subscription || {};
+                    
+                    // Tab-level segregation
+                    if (tab === 'pending' && sub.status !== 'pending') return false;
+                    if (tab === 'active' && sub.status !== 'active') return false;
+
+                    // Plan selection
+                    if (filterPlan !== 'all' && (sub.plan || 'free') !== filterPlan) return false;
+
+                    // Custom status search
+                    if (tab === 'all' && filterStatus !== 'all' && (sub.status || 'active') !== filterStatus) return false;
+
+                    // Keyword query
+                    const term = search.toLowerCase();
+                    const name = (u.name || '').toLowerCase();
+                    const email = (u.email || '').toLowerCase();
+                    return name.includes(term) || email.includes(term) || u.id.toLowerCase().includes(term);
+                }).sort((a, b) => {
+                    // Show pending ones first
+                    const aPend = a.subscription?.status === 'pending' ? 1 : 0;
+                    const bPend = b.subscription?.status === 'pending' ? 1 : 0;
+                    return bPend - aPend;
+                });
+            }, [users, tab, search, filterPlan, filterStatus]);
+
+            // Subscription approval
+            const handleApprove = async (userId) => {
+                const user = users.find(u => u.id === userId);
+                if (!user) return;
+                const sub = user.subscription || {};
+                const now = new Date();
+                const exp = new Date(now);
+
+                const requestedPlan = sub.pendingPlan || 'pro';
+                const requestedMonths = parseInt(sub.pendingMonths || 1);
+
+                exp.setMonth(exp.getMonth() + requestedMonths);
+
+                const updatedHistory = (sub.history || []).map(h => {
+                    if (h.status === 'pending') {
+                        return { ...h, status: 'approved', date: now.toISOString() };
+                    }
+                    return h;
+                });
+
+                const updatedSub = {
+                    ...sub,
+                    plan: requestedPlan,
+                    status: 'active',
+                    expiresAt: exp.toISOString(),
+                    pendingPlan: null,
+                    pendingMonths: null,
+                    history: updatedHistory
+                };
+
+                await rtdb.ref('users/' + userId + '/subscription').set(updatedSub);
+                showToast('🚀 Đã duyệt nâng cấp gói thành công!', 'success');
+            };
+
+            // Subscription rejection
+            const handleReject = async (userId) => {
+                const user = users.find(u => u.id === userId);
+                if (!user) return;
+                const sub = user.subscription || {};
+                const now = new Date();
+
+                const updatedHistory = (sub.history || []).map(h => {
+                    if (h.status === 'pending') {
+                        return { ...h, status: 'rejected', date: now.toISOString() };
+                    }
+                    return h;
+                });
+
+                const updatedSub = {
+                    ...sub,
+                    status: 'active',
+                    pendingPlan: null,
+                    pendingMonths: null,
+                    history: updatedHistory
+                };
+
+                await rtdb.ref('users/' + userId + '/subscription').set(updatedSub);
+                showToast('❌ Đã từ chối nâng cấp gói dịch vụ!');
+            };
+
+            // Edit Modal Handler
+            const handleEditSave = async (userId, plan, months, status, role) => {
+                const user = users.find(u => u.id === userId);
+                if (!user) return;
+                const now = new Date();
+                let expiresAt = null;
+                if (plan !== 'free' && months > 0) {
+                    const exp = new Date(now);
+                    exp.setMonth(exp.getMonth() + parseInt(months));
+                    expiresAt = exp.toISOString();
+                }
+                const historyEntry = {
+                    id: Date.now(),
+                    plan, months: parseInt(months),
+                    date: now.toISOString(),
+                    status: status === 'active' ? 'approved' : status,
+                    amount: plan === 'pro' ? months * 199000 : plan === 'enterprise' ? months * 499000 : 0,
+                    note: 'Admin edited'
+                };
+                const sub = {
+                    ...(user.subscription || {}),
+                    plan, status, expiresAt,
+                    pendingPlan: null,
+                    pendingMonths: null,
+                    history: [historyEntry, ...(user.subscription?.history || [])]
+                };
+                
+                await rtdb.ref('users/' + userId + '/subscription').set(sub);
+                await rtdb.ref('users/' + userId + '/role').set(role);
+
+                setEditModal(null);
+                showToast('💾 Đã cập nhật người dùng thành công!', 'success');
+            };
+
+            // System settings update
+            const handleSaveSettings = async (e) => {
+                e.preventDefault();
+                try {
+                    await rtdb.ref('settings').set(settings);
+                    showToast('💾 Đã lưu cấu hình hệ thống thành công!', 'success');
+                } catch (error) {
+                    showToast('❌ Lỗi lưu cấu hình: ' + error.message, 'error');
+                }
+            };
+
+            // Sidebar component rendering
+            const renderSidebarContent = () => (
+                <div className="flex flex-col h-full">
+                    <div className="flex items-center gap-3 mb-10 px-2">
+                        {settings.logoUrl ? (
+                            <img src={settings.logoUrl} className="w-10 h-10 rounded-xl object-cover border border-slate-700" alt="Logo" />
+                        ) : (
+                            <span className="material-symbols-outlined text-primary text-3xl" data-weight="fill" style={{fontVariationSettings: '"FILL" 1'}}>admin_panel_settings</span>
+                        )}
+                        <div>
+                            <h1 className="font-headline-md text-headline-md font-bold text-on-surface leading-tight truncate max-w-[130px]">{settings.appName || 'AutoPost Pro'}</h1>
+                            <p className="font-body-sm text-[10px] uppercase font-bold tracking-widest text-on-surface-variant/80">Admin Control</p>
+                        </div>
+                    </div>
+                    
+                    <nav className="flex-1 flex flex-col gap-2">
+                        <button onClick={() => { setTab('pending'); setShowMobileSidebar(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-all text-left ${tab === 'pending' ? 'bg-primary-container text-on-primary-container shadow-md' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50'}`}>
+                            <span className="material-symbols-outlined text-xl">dashboard</span>
+                            <span className="font-label-md text-label-md">Bảng điều khiển</span>
+                        </button>
+                        <button onClick={() => { setTab('all'); setShowMobileSidebar(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-all text-left ${tab === 'all' ? 'bg-primary-container text-on-primary-container shadow-md' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50'}`}>
+                            <span className="material-symbols-outlined text-xl">group</span>
+                            <span className="font-label-md text-label-md">Quản lý thành viên</span>
+                        </button>
+                        <button onClick={() => { setTab('pending'); setShowMobileSidebar(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-all text-left ${tab === 'pending' ? 'bg-primary-container text-on-primary-container shadow-md' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50'}`}>
+                            <span className="material-symbols-outlined text-xl">pending_actions</span>
+                            <span className="font-label-md text-label-md flex-1">Đơn chờ duyệt</span>
+                            {stats.pending > 0 && (
+                                <span className="bg-error text-on-error text-xs font-bold px-2 py-0.5 rounded-full">{stats.pending}</span>
+                            )}
+                        </button>
+                        <button onClick={() => { setTab('settings'); setShowMobileSidebar(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-all text-left ${tab === 'settings' ? 'bg-primary-container text-on-primary-container shadow-md' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50'}`}>
+                            <span className="material-symbols-outlined text-xl">settings</span>
+                            <span className="font-label-md text-label-md">Cấu hình hệ thống</span>
+                        </button>
+                    </nav>
+
+                    <div className="mt-auto flex flex-col gap-4 border-t border-outline-variant/10 pt-6">
+                        <div className="flex flex-col gap-2">
+                            <a className="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:text-on-surface transition-colors" href="/index.html">
+                                <span className="material-symbols-outlined text-sm">home</span>
+                                <span className="font-label-md text-label-md text-sm">Về trang chủ</span>
+                            </a>
+                            <button onClick={() => { auth.signOut(); }} className="w-full flex items-center gap-3 px-4 py-2 text-error hover:text-error/80 transition-colors text-left">
+                                <span className="material-symbols-outlined text-sm">logout</span>
+                                <span className="font-label-md text-label-md text-sm">Đăng xuất</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if (!adminUser) {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-4 w-full">
+                        <div className="w-full max-w-md p-8 sm:p-10 bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl shadow-2xl relative z-10 transition-all duration-300 animate-slide-in">
+                            <div className="text-center mb-8">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-purple-600 shadow-lg shadow-blue-500/20 mb-4">
+                                    <span className="material-symbols-outlined text-white text-3xl">shield_person</span>
+                                </div>
+                                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                    {settings.appName || 'AutoPost Pro'}
+                                </h1>
+                                <p className="text-slate-400 text-sm mt-2 font-medium">Bảng Điều Khiển Quản Trị Hệ Thống</p>
+                            </div>
+                            <div className="space-y-4 mb-8 bg-slate-950/40 p-5 rounded-2xl border border-slate-800/50 text-slate-300 text-sm">
+                                <div className="flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-blue-400">verified_user</span>
+                                    <span>Yêu cầu quyền hạn Admin để đăng nhập</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-purple-400">sync</span>
+                                    <span>Thời gian thực đồng bộ dữ liệu</span>
+                                </div>
+                            </div>
+                            <button className="w-full flex items-center justify-center gap-3 px-5 py-4 bg-white hover:bg-slate-100 text-slate-900 font-semibold rounded-2xl shadow-xl transition-all duration-200 active:scale-[0.98] group" onClick={handleLogin}>
+                                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                    <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.54 14.98 1 12 1 7.35 1 3.37 3.65 1.4 7.56l3.89 3.02C6.21 7.37 8.9 5.04 12 5.04z"/>
+                                    <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.46c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.37-4.87 3.37-8.5z"/>
+                                    <path fill="#FBBC05" d="M5.29 14.54a7.12 7.12 0 0 1 0-4.54L1.4 6.98A11.96 11.96 0 0 0 1 12c0 1.76.38 3.43 1.05 4.93l3.24-2.39z"/>
+                                    <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.1 0-5.79-2.33-6.71-5.54l-3.89 3.02C3.37 20.35 7.35 23 12 23z"/>
+                                </svg>
+                                Đăng nhập Admin với Google
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex w-full h-full overflow-hidden">
+                    {/* SideNavBar - Desktop */}
+                    <aside className="hidden md:flex bg-surface-container flex-col h-full py-6 px-4 left-0 w-64 border-r border-outline-variant/10 shadow-lg shrink-0">
+                        {renderSidebarContent()}
+                    </aside>
+
+                    {/* Mobile Sidebar Slide-in Drawer */}
+                    {showMobileSidebar && (
+                        <div className="fixed inset-0 z-50 flex md:hidden">
+                            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowMobileSidebar(false)}></div>
+                            <aside className="relative flex flex-col w-64 h-full p-6 bg-surface-container border-r border-slate-800 animate-slide-in">
+                                <button className="absolute top-4 right-4 p-1 rounded-full hover:bg-slate-800 text-slate-400" onClick={() => setShowMobileSidebar(false)}>
+                                    <span className="material-symbols-outlined text-xl">close</span>
+                                </button>
+                                {renderSidebarContent()}
+                            </aside>
+                        </div>
+                    )}
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+                        {/* TopNavBar */}
+                        <header className="bg-surface/80 backdrop-blur-md flex justify-between items-center w-full px-6 h-16 border-b border-outline-variant/10 z-30 shrink-0">
+                            <div className="flex items-center gap-6">
+                                {/* Mobile Menu Button */}
+                                <button className="md:hidden text-on-surface-variant hover:text-primary transition-all p-1" onClick={() => setShowMobileSidebar(true)}>
+                                    <span className="material-symbols-outlined text-2xl">menu</span>
+                                </button>
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:block">Phiên làm việc bảo mật</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <button className="text-on-surface-variant hover:text-primary transition-all opacity-80 hover:opacity-100 p-2 rounded-full hover:bg-surface-variant/50">
+                                        <span className="material-symbols-outlined text-[20px]">notifications</span>
+                                    </button>
+                                    <button className="text-on-surface-variant hover:text-primary transition-all opacity-80 hover:opacity-100 p-2 rounded-full hover:bg-surface-variant/50">
+                                        <span className="material-symbols-outlined text-[20px]">dark_mode</span>
+                                    </button>
+                                </div>
+                                <button onClick={() => { setTab('settings'); }} className="hidden sm:flex bg-secondary-container/20 border border-secondary text-secondary px-4 py-1.5 rounded-full font-label-md text-label-md items-center gap-2 hover:bg-secondary-container/30 transition-all active:scale-95 shadow-sm">
+                                    <span className="material-symbols-outlined text-sm font-black">settings_suggest</span> Cấu hình nhanh
+                                </button>
+                                
+                                <div className="relative" ref={dropdownRef}>
+                                    <button 
+                                        onClick={() => setShowAdminDropdown(!showAdminDropdown)} 
+                                        className="flex items-center gap-2 bg-slate-950/40 hover:bg-slate-950/60 p-1.5 pr-3 rounded-full border border-slate-800/50 transition-all focus:outline-none"
+                                    >
+                                        <img src={adminUser.photoURL || 'https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg'} className="w-8 h-8 rounded-full border border-slate-700 shadow-sm" alt="Admin avatar" />
+                                        <span className="text-xs font-bold text-slate-350 hidden md:inline">{adminUser.displayName || 'Admin'}</span>
+                                        <span className="material-symbols-outlined text-[16px] text-slate-400 transition-transform duration-250" style={{ transform: showAdminDropdown ? 'rotate(180deg)' : 'none' }}>
+                                            keyboard_arrow_down
+                                        </span>
+                                    </button>
+
+                                    {showAdminDropdown && (
+                                        <div className="absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl py-2 z-50 animate-slide-in">
+                                            <div className="px-4 py-2.5 border-b border-slate-800/80">
+                                                <p className="text-[9px] text-slate-400 uppercase tracking-widest font-black">Quản trị viên</p>
+                                                <p className="text-xs font-bold text-slate-200 truncate mt-0.5">{adminUser.email}</p>
+                                            </div>
+
+                                            <button 
+                                                onClick={() => { setTab('settings'); setShowAdminDropdown(false); }} 
+                                                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-800 text-left font-bold transition-all"
+                                            >
+                                                <span className="material-symbols-outlined text-base text-slate-400">settings</span>
+                                                Cài đặt hệ thống
+                                            </button>
+
+                                            <a 
+                                                href="/index.html" 
+                                                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-blue-400 hover:bg-blue-950/20 text-left font-bold transition-all border-t border-slate-800/80"
+                                            >
+                                                <span className="material-symbols-outlined text-base text-blue-500">home</span>
+                                                Về Trang chủ
+                                            </a>
+
+                                            <button 
+                                                onClick={() => { auth.signOut(); setShowAdminDropdown(false); }} 
+                                                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-950/20 text-left font-bold transition-all border-t border-slate-800/80"
+                                            >
+                                                <span className="material-symbols-outlined text-base text-rose-500">logout</span>
+                                                Đăng xuất
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Page Content */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col gap-8 bg-surface-container-lowest">
+                            {/* Hero Header */}
+                            <div className="glass-card rounded-3xl p-6 flex items-center justify-between shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-slate-800/50">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-primary-container/20 rounded-2xl flex items-center justify-center border border-primary/20 shadow-[0_0_15px_rgba(192,193,255,0.1)]">
+                                        <span className="material-symbols-outlined text-primary text-2xl" data-weight="fill" style={{fontVariationSettings: '"FILL" 1'}}>shield_person</span>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-3">
+                                            <h2 className="font-headline-lg text-xl sm:text-2xl font-black text-on-surface">Bảng điều khiển quản lý</h2>
+                                            <span className="bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full text-[10px] font-label-md">Admin</span>
+                                        </div>
+                                        <p className="font-body-md text-xs text-on-surface-variant mt-1">Doanh thu & kích hoạt thành viên thời gian thực</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Stat Cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {/* Card 1: Users */}
+                                <div className="glass-card rounded-2xl p-6 flex flex-col justify-between hover:border-primary/30 transition-all duration-300 group hover:shadow-lg hover:shadow-primary/5 cursor-pointer" onClick={() => setTab('all')}>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="font-headline-xl text-3xl font-extrabold text-on-surface leading-none group-hover:text-primary transition-colors">{stats.total}</h3>
+                                            <p className="font-label-md text-[10px] text-on-surface-variant mt-2.5 uppercase tracking-widest font-bold">Tổng người dùng</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-surface-variant flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+                                            <span className="material-symbols-outlined">group</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Card 2: Pending */}
+                                <div className="glass-card rounded-2xl p-6 flex flex-col justify-between hover:border-tertiary/30 transition-all duration-300 group hover:shadow-lg hover:shadow-tertiary/5 cursor-pointer" onClick={() => setTab('pending')}>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="font-headline-xl text-3xl font-extrabold text-tertiary leading-none drop-shadow-[0_0_8px_rgba(255,185,95,0.2)]">{stats.pending}</h3>
+                                            <p className="font-label-md text-[10px] text-on-surface-variant mt-2.5 uppercase tracking-widest font-bold">Đơn chờ duyệt</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-tertiary/10 flex items-center justify-center border border-tertiary/20 text-tertiary">
+                                            <span className="material-symbols-outlined">assignment_late</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Card 3: Active */}
+                                <div className="glass-card rounded-2xl p-6 flex flex-col justify-between hover:border-secondary/30 transition-all duration-300 group hover:shadow-lg hover:shadow-secondary/5 cursor-pointer" onClick={() => setTab('active')}>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="font-headline-xl text-3xl font-extrabold text-secondary leading-none drop-shadow-[0_0_8px_rgba(78,222,163,0.2)]">{stats.active}</h3>
+                                            <p className="font-label-md text-[10px] text-on-surface-variant mt-2.5 uppercase tracking-widest font-bold">Đang hoạt động</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center border border-secondary/20 text-secondary">
+                                            <span className="material-symbols-outlined">verified</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Card 4: Revenue */}
+                                <div className="glass-card rounded-2xl p-6 flex flex-col justify-between hover:border-[#d946ef]/30 transition-all duration-300 group relative overflow-hidden">
+                                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#d946ef]/10 rounded-full blur-2xl"></div>
+                                    <div className="flex justify-between items-start mb-4 relative z-10">
+                                        <div>
+                                            <h3 className="font-headline-lg text-xl sm:text-2xl font-black text-[#f0abfc] leading-none tracking-tight">{stats.revenue.toLocaleString('vi-VN')}₫</h3>
+                                            <p className="font-label-md text-[10px] text-on-surface-variant mt-2.5 uppercase tracking-widest font-bold">Tổng doanh thu</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-[#d946ef]/10 flex items-center justify-center border border-[#d946ef]/20 text-[#f0abfc]">
+                                            <span className="material-symbols-outlined">account_balance_wallet</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="flex-1 flex flex-col gap-6">
+                                {/* Filters & Tabs */}
+                                <div className="glass-card rounded-2xl p-2.5 flex flex-col lg:flex-row justify-between items-center gap-4 border border-slate-800/40">
+                                    {/* Tabs */}
+                                    <div className="flex space-x-1 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0 hide-scrollbar">
+                                        <button onClick={() => setTab('pending')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all border ${tab === 'pending' ? 'bg-primary/20 text-primary border-primary/30 shadow-[0_0_10px_rgba(192,193,255,0.1)]' : 'text-on-surface-variant hover:text-on-surface border-transparent hover:bg-surface-variant/50'}`}>
+                                            <span className="material-symbols-outlined text-[18px]">pending_actions</span>
+                                            Chờ duyệt
+                                            {stats.pending > 0 && (
+                                                <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">{stats.pending}</span>
+                                            )}
+                                        </button>
+                                        <button onClick={() => setTab('active')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all border ${tab === 'active' ? 'bg-primary/20 text-primary border-primary/30 shadow-[0_0_10px_rgba(192,193,255,0.1)]' : 'text-on-surface-variant hover:text-on-surface border-transparent hover:bg-surface-variant/50'}`}>
+                                            <span className="material-symbols-outlined text-[18px]">play_circle</span>
+                                            Đang chạy
+                                        </button>
+                                        <button onClick={() => setTab('all')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all border ${tab === 'all' ? 'bg-primary/20 text-primary border-primary/30 shadow-[0_0_10px_rgba(192,193,255,0.1)]' : 'text-on-surface-variant hover:text-on-surface border-transparent hover:bg-surface-variant/50'}`}>
+                                            <span className="material-symbols-outlined text-[18px]">list_alt</span>
+                                            Tất cả ({stats.total})
+                                        </button>
+                                        <button onClick={() => setTab('settings')} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all border ${tab === 'settings' ? 'bg-primary/20 text-primary border-primary/30 shadow-[0_0_10px_rgba(192,193,255,0.1)]' : 'text-on-surface-variant hover:text-on-surface border-transparent hover:bg-surface-variant/50'}`}>
+                                            <span className="material-symbols-outlined text-[18px]">settings</span>
+                                            Cài đặt
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Search & Filter - Hidden in settings view */}
+                                    {tab !== 'settings' && (
+                                        <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-3">
+                                            <div className="relative w-full sm:w-64">
+                                                <span className="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-outline-variant text-[20px]">search</span>
+                                                <input 
+                                                    className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl py-2.5 pl-10 pr-4 text-xs font-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder-outline-variant/50 transition-all" 
+                                                    placeholder="Tìm theo tên, email hoặc UID..." 
+                                                    type="text"
+                                                    value={search}
+                                                    onChange={e => setSearch(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="flex gap-2 w-full sm:w-auto justify-end">
+                                                <select 
+                                                    className="bg-surface-container-low border border-outline-variant/30 text-on-surface-variant hover:text-on-surface rounded-xl px-3 py-2.5 font-label-md text-xs outline-none transition-colors cursor-pointer"
+                                                    value={filterPlan} 
+                                                    onChange={e => setFilterPlan(e.target.value)}
+                                                >
+                                                    <option value="all">Tất cả Gói</option>
+                                                    <option value="free">Free</option>
+                                                    <option value="pro">Pro</option>
+                                                    <option value="enterprise">Enterprise</option>
+                                                </select>
+
+                                                {tab === 'all' && (
+                                                    <select 
+                                                        className="bg-surface-container-low border border-outline-variant/30 text-on-surface-variant hover:text-on-surface rounded-xl px-3 py-2.5 font-label-md text-xs outline-none transition-colors cursor-pointer"
+                                                        value={filterStatus} 
+                                                        onChange={e => setFilterStatus(e.target.value)}
+                                                    >
+                                                        <option value="all">Tất cả Trạng thái</option>
+                                                        <option value="pending">Chờ duyệt (Pending)</option>
+                                                        <option value="active">Kích hoạt (Active)</option>
+                                                        <option value="expired">Hết hạn (Expired)</option>
+                                                    </select>
+                                                )}
+
+                                                <button 
+                                                    onClick={() => { setSearch(''); setFilterPlan('all'); setFilterStatus('all'); }} 
+                                                    className="flex items-center gap-1.5 px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 text-on-surface-variant hover:text-on-surface rounded-xl font-label-md text-xs whitespace-nowrap transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">refresh</span> Reset
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Main Dynamic Panel */}
+                                {tab === 'settings' ? (
+                                    <div className="max-w-3xl mx-auto w-full bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl animate-slide-in">
+                                        <div className="flex items-center gap-3 border-b border-slate-800 pb-5 mb-6">
+                                            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                                                <span className="material-symbols-outlined">settings_suggest</span>
+                                            </div>
+                                            <div>
+                                                <h2 className="text-xl font-bold text-white">Cấu hình hệ thống trang web</h2>
+                                                <p className="text-xs text-slate-400">Thay đổi thương hiệu, ngân hàng thanh toán của bạn</p>
+                                            </div>
+                                        </div>
+
+                                        <form onSubmit={handleSaveSettings} className="space-y-6">
+                                            <div className="space-y-4">
+                                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Thông tin thương hiệu
+                                                </h3>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-400 mb-1.5">Tên trang web</label>
+                                                        <input type="text" className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-250 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={settings.appName} onChange={e => setSettings({...settings, appName: e.target.value})} required />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-400 mb-1.5">Ảnh Logo thương hiệu URL</label>
+                                                        <input type="text" className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-250 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Link logo (https://...)" value={settings.logoUrl} onChange={e => setSettings({...settings, logoUrl: e.target.value})} />
+                                                    </div>
+                                                </div>
+                                                {settings.logoUrl && (
+                                                    <div className="flex items-center gap-3 p-3 bg-slate-950/40 rounded-xl border border-slate-800/50 w-fit">
+                                                        <span className="text-[10px] font-bold text-slate-500">Xem trước logo:</span>
+                                                        <img src={settings.logoUrl} className="w-8 h-8 object-cover rounded" onError={e => e.target.style.display='none'} />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-4 pt-4 border-t border-slate-800/80">
+                                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Cổng thanh toán VietQR tự động
+                                                </h3>
+                                                
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-400 mb-1.5">Chọn ngân hàng</label>
+                                                        <select className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all cursor-pointer" value={settings.bankName || 'mbbank'} onChange={e => {
+                                                            const bCode = e.target.value;
+                                                            setSettings({
+                                                                ...settings,
+                                                                bankName: bCode,
+                                                                qrTemplate: `https://img.vietqr.io/image/${bCode}-${settings.bankNo || ''}-compact.png`
+                                                            });
+                                                        }} required>
+                                                            <option value="mbbank">MB Bank (Ngân hàng Quân Đội)</option>
+                                                            <option value="vietcombank">Vietcombank (VCB)</option>
+                                                            <option value="techcombank">Techcombank</option>
+                                                            <option value="vietinbank">VietinBank</option>
+                                                            <option value="bidv">BIDV</option>
+                                                            <option value="acb">ACB</option>
+                                                            <option value="agribank">Agribank</option>
+                                                            <option value="vpbank">VPBank</option>
+                                                            <option value="tpbank">TPBank</option>
+                                                            <option value="sacombank">Sacombank</option>
+                                                            <option value="vib">VIB</option>
+                                                            <option value="shb">SHB</option>
+                                                            <option value="hdbank">HDBank</option>
+                                                            <option value="msb">MSB</option>
+                                                            <option value="ocb">OCB</option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-400 mb-1.5">Số tài khoản ngân hàng (STK)</label>
+                                                        <input type="text" className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={settings.bankNo} placeholder="Nhập STK để tạo QR..." onChange={e => {
+                                                            const stk = e.target.value.trim();
+                                                            setSettings({
+                                                                ...settings,
+                                                                bankNo: stk,
+                                                                qrTemplate: `https://img.vietqr.io/image/${settings.bankName || 'mbbank'}-${stk}-compact.png`
+                                                            });
+                                                        }} required />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-400 mb-1.5">Tên chủ tài khoản (Viết hoa không dấu)</label>
+                                                        <input type="text" className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-255" value={settings.bankUser} placeholder="ví dụ: HOANG PHUONG ANH" onChange={e => setSettings({...settings, bankUser: e.target.value.toUpperCase()})} required />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-slate-400 mb-1.5">Đường dẫn VietQR (Tự tạo)</label>
+                                                        <input type="text" className="w-full bg-slate-950/20 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-500 outline-none" value={settings.qrTemplate || `https://img.vietqr.io/image/${settings.bankName || 'mbbank'}-${settings.bankNo || ''}-compact.png`} readOnly disabled />
+                                                    </div>
+                                                </div>
+
+                                                {/* Visual QR Code Generator */}
+                                                <div className="flex flex-col items-center bg-slate-950/50 p-6 rounded-2xl border border-slate-800/80 w-full">
+                                                    <span className="text-[10px] font-bold text-slate-450 mb-4 flex items-center gap-1.5 uppercase tracking-wider">
+                                                        <span className="material-symbols-outlined text-base">qr_code_2</span> Bản xem trước mã QR duyệt gói demo
+                                                    </span>
+                                                    {settings.bankNo ? (
+                                                        <div className="bg-white p-3 rounded-2xl shadow-xl flex-shrink-0 animate-slide-in border border-slate-200">
+                                                            <img src={`https://img.vietqr.io/image/${settings.bankName || 'mbbank'}-${settings.bankNo}-compact.png?amount=199000&addInfo=DEMO_PREVIEW&accountName=${encodeURIComponent(settings.bankUser || 'CHUTAIKHOAN')}`} className="w-[180px] h-[180px] object-contain block" alt="QR Preview" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-xs text-slate-555 italic h-[180px] flex items-center">Nhập STK để tạo mã QR tự động hiển thị tại đây...</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <button type="submit" className="w-full py-4 bg-primary hover:bg-opacity-90 text-slate-950 font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.99] duration-150">
+                                                <span className="material-symbols-outlined">save</span> Lưu cấu hình hệ thống
+                                            </button>
+                                        </form>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {/* Users Grid/Table */}
+                                        <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-3xl overflow-hidden shadow-xl">
+                                            {loading ? (
+                                                <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
+                                                    <span className="material-symbols-outlined text-4xl animate-spin text-primary">progress_activity</span>
+                                                    <p className="text-xs font-medium">Đang tải danh sách thành viên...</p>
+                                                </div>
+                                            ) : filtered.length === 0 ? (
+                                                <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-3">
+                                                    <span className="material-symbols-outlined text-5xl opacity-40">inbox</span>
+                                                    <p className="text-xs font-medium">Không tìm thấy người dùng phù hợp...</p>
+                                                </div>
+                                            ) : (
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-left border-collapse min-w-[1000px]">
+                                                        <thead>
+                                                            <tr className="border-b border-slate-800 bg-slate-950/30">
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Người dùng</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Quyền hạn</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gói dịch vụ</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Trạng thái</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Hạn dùng</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Đăng ký</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Đã nộp</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Thời gian giao dịch</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Hành động</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-800/50">
+                                                            {filtered.map(u => {
+                                                                const sub = u.subscription || {};
+                                                                const latest = (sub.history || [])[0];
+                                                                const exp = sub.expiresAt ? new Date(sub.expiresAt) : null;
+                                                                const daysLeft = exp ? Math.ceil((exp - new Date()) / 86400000) : null;
+                                                                return (
+                                                                    <tr key={u.id} className="hover:bg-slate-850/40 transition-colors">
+                                                                        <td className="px-6 py-4">
+                                                                            <div className="flex items-center gap-3">
+                                                                                <img src={u.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'U')}&background=1e293b&color=e2e8f0`} className="w-10 h-10 rounded-full border border-slate-700 shadow-inner flex-shrink-0" alt="Avatar" />
+                                                                                <div className="overflow-hidden max-w-[180px]">
+                                                                                    <div className="font-bold text-slate-200 truncate">{u.name || 'Thành viên mới'}</div>
+                                                                                    <div className="text-[10px] text-slate-400 truncate">{u.email || u.id}</div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${u.role === 'admin' ? 'bg-primary/20 text-blue-400 border border-primary/30' : 'bg-slate-800 text-slate-400'}`}>
+                                                                                {u.role === 'admin' ? 'ADMIN' : 'USER'}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            <div className="flex flex-col gap-1">
+                                                                                <span className={`inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${sub.plan === 'pro' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : sub.plan === 'enterprise' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-slate-800 text-slate-400'}`}>
+                                                                                    {(sub.plan || 'free').toUpperCase()}
+                                                                                </span>
+                                                                                {sub.status === 'pending' && sub.pendingPlan && (
+                                                                                    <span className="inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30 animate-pulse">
+                                                                                        ➜ {sub.pendingPlan.toUpperCase()} ({sub.pendingMonths || 1}T)
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${sub.status === 'pending' ? 'bg-amber-500/15 text-amber-500 animate-pulse' : sub.status === 'expired' ? 'bg-rose-500/15 text-rose-500' : 'bg-emerald-500/15 text-emerald-400'}`}>
+                                                                                {sub.status || 'active'}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="px-6 py-4 text-xs font-semibold">
+                                                                            {exp ? (
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="text-slate-300">{exp.toLocaleDateString('vi-VN')}</span>
+                                                                                    {daysLeft !== null && (
+                                                                                        <span className={`text-[9px] font-black uppercase tracking-wider mt-0.5 ${daysLeft <= 0 || sub.status === 'expired' ? 'text-rose-500' : daysLeft <= 7 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                                                            ({daysLeft <= 0 || sub.status === 'expired' ? 'Hết hạn' : `${daysLeft} ngày còn lại`})
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            ) : (
+                                                                                <span className="text-slate-500">—</span>
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 text-xs font-bold text-slate-300">{latest?.months ? latest.months + ' tháng' : '—'}</td>
+                                                                        <td className="px-6 py-4 text-xs font-bold text-emerald-400">{latest?.amount ? latest.amount.toLocaleString('vi-VN') + 'đ' : '—'}</td>
+                                                                        <td className="px-6 py-4 text-[10px] text-slate-500 font-mono">{latest?.date ? new Date(latest.date).toLocaleString('vi-VN') : '—'}</td>
+                                                                        <td className="px-6 py-4 text-right">
+                                                                            <div className="flex items-center justify-end gap-2">
+                                                                                {sub.status === 'pending' && (
+                                                                                    <>
+                                                                                        <button onClick={() => handleApprove(u.id)} className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+                                                                                            <span className="material-symbols-outlined text-xs font-black">check</span> Duyệt
+                                                                                        </button>
+                                                                                        <button onClick={() => handleReject(u.id)} className="flex items-center gap-1 px-3 py-1.5 bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+                                                                                            <span className="material-symbols-outlined text-xs font-black">close</span> Hủy
+                                                                                        </button>
+                                                                                    </>
+                                                                                )}
+                                                                                <button onClick={() => setEditModal({ userId: u.id, plan: sub.plan || 'free', months: latest?.months || 1, status: sub.status || 'active', role: u.role || 'user' })} className="flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all border border-slate-700">
+                                                                                    <span className="material-symbols-outlined text-xs">edit</span> Sửa
+                                                                                </button>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Edit User Subscription Modal */}
+                    {editModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setEditModal(null)}></div>
+                            <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl overflow-hidden animate-slide-in">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-lg font-black text-white flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-primary">edit_note</span> Chỉnh sửa gói thành viên
+                                    </h2>
+                                    <button onClick={() => setEditModal(null)} className="p-1.5 hover:bg-slate-800 rounded-full transition-colors">
+                                        <span className="material-symbols-outlined text-sm">close</span>
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Cấp độ gói</label>
+                                        <select className="w-full bg-slate-950 border border-slate-850 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-primary transition-all cursor-pointer" value={editModal.plan} onChange={e => setEditModal({...editModal, plan: e.target.value})}>
+                                            <option value="free">Free (Miễn phí)</option>
+                                            <option value="pro">Pro - 199.000đ/tháng</option>
+                                            <option value="enterprise">Enterprise - 499.000đ/tháng</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Số tháng gia hạn</label>
+                                        <input type="number" min="1" max="36" className="w-full bg-slate-950 border border-slate-850 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-primary transition-all" value={editModal.months} onChange={e => setEditModal({...editModal, months: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Trạng thái kích hoạt</label>
+                                        <select className="w-full bg-slate-950 border border-slate-850 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-primary transition-all cursor-pointer" value={editModal.status} onChange={e => setEditModal({...editModal, status: e.target.value})}>
+                                            <option value="active">Hoạt động (Active)</option>
+                                            <option value="pending">Đang đợi duyệt (Pending)</option>
+                                            <option value="expired">Hết hạn sử dụng (Expired)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Phân quyền vai trò</label>
+                                        <select className="w-full bg-slate-950 border border-slate-850 rounded-xl px-4 py-3 text-sm text-slate-200 outline-none focus:border-primary transition-all cursor-pointer" value={editModal.role || 'user'} onChange={e => setEditModal({...editModal, role: e.target.value})}>
+                                            <option value="user">USER (Thành viên)</option>
+                                            <option value="admin">ADMIN (Quản trị viên)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 mt-6 pt-5 border-t border-slate-800/85">
+                                    <button className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-350 font-bold rounded-xl text-xs transition-all" onClick={() => setEditModal(null)}>Hủy bỏ</button>
+                                    <button className="flex-1 py-3 bg-primary hover:bg-opacity-90 text-slate-950 font-black rounded-xl text-xs shadow-lg transition-all" onClick={() => handleEditSave(editModal.userId, editModal.plan, editModal.months, editModal.status, editModal.role || 'user')}>Lưu thay đổi</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Sliding Dynamic Toast */}
+                    {toast && (
+                        <div className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 border animate-slide-in ${toast.type === 'error' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'}`}>
+                            <span className="material-symbols-outlined text-lg">
+                                {toast.type === 'error' ? 'report' : 'verified'}
+                            </span>
+                            <span className="text-xs font-bold">{toast.msg}</span>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
