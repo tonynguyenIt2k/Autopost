@@ -129,7 +129,7 @@ function App() {
     const [theme, setTheme] = useState(() => storage.get('theme', 'light'));
     const [lang, setLang] = useState(() => storage.get('lang', 'vi'));
     const t = (key) => translations[lang][key] || key;
-    const [extensionStatus, setExtensionStatus] = useState(false);
+    const [extensionStatus, setExtensionStatus] = useState(() => storage.get('extension_status', false));
     const [fbUser, setFbUser] = useState(() => storage.get('fb_user_info', null));
     const [content, setContent] = useState(() => storage.get('fb_post_content', '') || '');
     const [groups, setGroups] = useState(() => storage.get('fb_groups', []));
@@ -162,6 +162,7 @@ function App() {
             const { type, data } = event.data;
             if (type === 'FB_TOOL_INSTALLED') {
                 setExtensionStatus(true);
+                storage.set('extension_status', true);
                 if (intervalId) {
                     clearInterval(intervalId);
                     intervalId = null;

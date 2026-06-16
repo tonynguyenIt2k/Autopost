@@ -189,7 +189,7 @@
             },
             get: (key, defaultValue) => {
                 try {
-                    const globalKeys = ['google_user', 'subscription', 'theme', 'lang', 'active_page', 'sidebar_collapsed'];
+                    const globalKeys = ['google_user', 'subscription', 'theme', 'lang', 'active_page', 'sidebar_collapsed', 'extension_status'];
                     const finalKey = globalKeys.includes(key) ? key : (storage.getUserPrefix() + key);
                     const item = localStorage.getItem(finalKey);
                     return item ? JSON.parse(item) : defaultValue;
@@ -197,7 +197,7 @@
             },
             set: (key, value) => {
                 try {
-                    const globalKeys = ['google_user', 'subscription', 'theme', 'lang', 'active_page', 'sidebar_collapsed'];
+                    const globalKeys = ['google_user', 'subscription', 'theme', 'lang', 'active_page', 'sidebar_collapsed', 'extension_status'];
                     const finalKey = globalKeys.includes(key) ? key : (storage.getUserPrefix() + key);
                     localStorage.setItem(finalKey, JSON.stringify(value));
                 } catch (e) {
@@ -205,7 +205,7 @@
                 }
             },
             remove: (key) => {
-                const globalKeys = ['google_user', 'subscription', 'theme', 'lang', 'active_page', 'sidebar_collapsed'];
+                const globalKeys = ['google_user', 'subscription', 'theme', 'lang', 'active_page', 'sidebar_collapsed', 'extension_status'];
                 const finalKey = globalKeys.includes(key) ? key : (storage.getUserPrefix() + key);
                 localStorage.removeItem(finalKey);
             }
@@ -734,7 +734,7 @@
                 }
                 return text;
             };
-            const [extensionStatus, setExtensionStatus] = useState(false);
+            const [extensionStatus, setExtensionStatus] = useState(() => storage.get('extension_status', false));
             const [settings, setSettings] = useState({
                 appName: 'AutoPost Pro',
                 logoUrl: '',
@@ -865,6 +865,7 @@ Input:
                     });
                     storage.remove('google_user');
                     storage.remove('subscription');
+                    storage.remove('extension_status');
                     showToast('Đã đăng xuất Google', 'info');
                 };
 
@@ -1181,6 +1182,7 @@ Input:
                     const { type, data } = event.data;
                     if (type === 'FB_TOOL_INSTALLED') {
                         setExtensionStatus(true);
+                        storage.set('extension_status', true);
                         if (intervalId) {
                             clearInterval(intervalId);
                             intervalId = null;
