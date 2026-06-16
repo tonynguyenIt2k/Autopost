@@ -2205,6 +2205,7 @@ Input:
                                                     !isFullySetup ? (
                                                         <SetupWizard
                                                             t={t}
+                                                            extensionStatus={extensionStatus}
                                                             googleUser={googleUser}
                                                             onGoogleLogin={handleGoogleLogin}
                                                             subscription={subscription}
@@ -2289,6 +2290,7 @@ Input:
                                                     !isFullySetup ? (
                                                         <SetupWizard
                                                             t={t}
+                                                            extensionStatus={extensionStatus}
                                                             googleUser={googleUser}
                                                             onGoogleLogin={handleGoogleLogin}
                                                             subscription={subscription}
@@ -3501,7 +3503,7 @@ Input:
             const handleRecheck = () => {
                 setIsRechecking(true);
                 // Re-listen for extension signal
-                window.postMessage({ type: 'PING_EXTENSION' }, '*');
+                window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
                 setTimeout(() => {
                     setIsRechecking(false);
                     if (!extensionStatus) {
@@ -3555,6 +3557,27 @@ Input:
                                 {/* Extension Download */}
                                 {activeStep < steps.length && steps[activeStep].id === 'extension' && (
                                     <div className="w-full">
+                                        {window.location.protocol === 'file:' && (
+                                            <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl animate-fade-in">
+                                                <div className="flex items-start gap-3">
+                                                    <span className="material-symbols-outlined text-amber-600 shrink-0 mt-0.5">warning</span>
+                                                    <div>
+                                                        <h4 className="font-bold text-amber-800 dark:text-amber-400 text-sm mb-1">
+                                                            Lưu ý khi mở ứng dụng từ tệp cục bộ (file://)
+                                                        </h4>
+                                                        <div className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed space-y-1.5">
+                                                            <p>Để Extension có thể nhận diện được ứng dụng khi chạy bằng tệp cục bộ, bạn cần thực hiện:</p>
+                                                            <div className="pl-2 space-y-1 font-medium">
+                                                                <div>1. Mở trang quản lý tiện ích: <code className="bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded font-mono text-[11px] select-all">chrome://extensions</code></div>
+                                                                <div>2. Tìm thẻ của extension <strong>FB Multi-Post Tool</strong> và nhấn vào nút <strong>Chi tiết (Details)</strong>.</div>
+                                                                <div>3. Tìm và bật chức năng <strong>"Cho phép truy cập vào các URL của tệp" (Allow access to file URLs)</strong>.</div>
+                                                                <div>4. Tải lại trang này (F5) và nhấn <strong>Kiểm tra lại</strong>.</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-800/50 mb-4">
                                             <div className="flex items-start gap-4 mb-5">
                                                 <div className="w-14 h-14 bg-gradient-to-br from-primary to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 shrink-0">
