@@ -1175,11 +1175,16 @@ Input:
 
             // Extension Messaging
             useEffect(() => {
+                let intervalId;
                 const handleMessage = (event) => {
                     if (event.source !== window) return;
                     const { type, data } = event.data;
                     if (type === 'FB_TOOL_INSTALLED') {
                         setExtensionStatus(true);
+                        if (intervalId) {
+                            clearInterval(intervalId);
+                            intervalId = null;
+                        }
                         // Request Facebook login check when extension is confirmed
                         window.postMessage({ type: 'CHECK_FACEBOOK_LOGIN' }, '*');
                     }
@@ -1365,10 +1370,16 @@ Input:
                     setFbUser(cachedUser);
                 }
 
-                // Check for extension and request login status
+                // Check for extension and request login status immediately and via interval
                 window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
+                intervalId = setInterval(() => {
+                    window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
+                }, 1000);
 
-                return () => window.removeEventListener('message', handleMessage);
+                return () => {
+                    window.removeEventListener('message', handleMessage);
+                    if (intervalId) clearInterval(intervalId);
+                };
             }, []);
 
             const handleScan = () => {

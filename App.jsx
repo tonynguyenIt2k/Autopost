@@ -156,10 +156,17 @@ function App() {
 
     // Extension Messaging
     useEffect(() => {
+        let intervalId;
         const handleMessage = (event) => {
             if (event.source !== window) return;
             const { type, data } = event.data;
-            if (type === 'FB_TOOL_INSTALLED') setExtensionStatus(true);
+            if (type === 'FB_TOOL_INSTALLED') {
+                setExtensionStatus(true);
+                if (intervalId) {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                }
+            }
             if (type === 'FB_USER_INFO') {
                 setFbUser(data);
                 storage.set('fb_user_info', data);
@@ -174,7 +181,13 @@ function App() {
         };
         window.addEventListener('message', handleMessage);
         window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
-        return () => window.removeEventListener('message', handleMessage);
+        intervalId = setInterval(() => {
+            window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
+        }, 1000);
+        return () => {
+            window.removeEventListener('message', handleMessage);
+            if (intervalId) clearInterval(intervalId);
+        };
     }, []);
 
     const handleScan = () => {
