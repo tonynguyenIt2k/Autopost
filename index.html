@@ -1180,6 +1180,7 @@ Input:
                 let pollIntervalId;
                 let watchdogIntervalId;
                 let lastSeenTime = storage.get('extension_status', false) ? Date.now() : 0;
+                let hasCheckedLogin = false;
 
                 const handleMessage = (event) => {
                     if (event.source !== window) return;
@@ -1188,13 +1189,22 @@ Input:
                         lastSeenTime = Date.now();
                         setExtensionStatus(true);
                         storage.set('extension_status', true);
-                        // Request Facebook login check when extension is confirmed
-                        window.postMessage({ type: 'CHECK_FACEBOOK_LOGIN' }, '*');
+                        
+                        // Only check Facebook login once on mount or when extension reconnects
+                        if (!hasCheckedLogin) {
+                            hasCheckedLogin = true;
+                            window.postMessage({ type: 'CHECK_FACEBOOK_LOGIN' }, '*');
+                        }
                     }
                     if (type === 'FB_USER_INFO') {
-                        setFbUser(data);
+                        setFbUser(prev => {
+                            // Only show success toast if logging in for the first time or as a different user
+                            if (!prev || prev.userId !== data.userId) {
+                                showToast(`Logged in as ${data.userName}`, 'success');
+                            }
+                            return data;
+                        });
                         storage.set('fb_user_info', data);
-                        showToast(`Logged in as ${data.userName}`, 'success');
                     }
                     if (type === 'FB_LOGGED_IN') {
                         if (window.__fbClearTimer) {
@@ -1384,6 +1394,7 @@ Input:
                     if (storage.get('extension_status', false) && Date.now() - lastSeenTime > 5000) {
                         setExtensionStatus(false);
                         storage.set('extension_status', false);
+                        hasCheckedLogin = false; // Reset to allow verification upon reconnect
                     }
                 }, 3000);
 
