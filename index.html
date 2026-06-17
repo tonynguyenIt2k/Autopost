@@ -1176,17 +1176,17 @@ Input:
 
             // Extension Messaging
             useEffect(() => {
-                let intervalId;
+                let pollIntervalId;
+                let watchdogIntervalId;
+                let lastSeenTime = storage.get('extension_status', false) ? Date.now() : 0;
+
                 const handleMessage = (event) => {
                     if (event.source !== window) return;
                     const { type, data } = event.data;
                     if (type === 'FB_TOOL_INSTALLED') {
+                        lastSeenTime = Date.now();
                         setExtensionStatus(true);
                         storage.set('extension_status', true);
-                        if (intervalId) {
-                            clearInterval(intervalId);
-                            intervalId = null;
-                        }
                         // Request Facebook login check when extension is confirmed
                         window.postMessage({ type: 'CHECK_FACEBOOK_LOGIN' }, '*');
                     }
@@ -1374,13 +1374,22 @@ Input:
 
                 // Check for extension and request login status immediately and via interval
                 window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
-                intervalId = setInterval(() => {
+                pollIntervalId = setInterval(() => {
                     window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
-                }, 1000);
+                }, 2000);
+
+                // Watchdog to check if extension is disabled or uninstalled
+                watchdogIntervalId = setInterval(() => {
+                    if (storage.get('extension_status', false) && Date.now() - lastSeenTime > 5000) {
+                        setExtensionStatus(false);
+                        storage.set('extension_status', false);
+                    }
+                }, 3000);
 
                 return () => {
                     window.removeEventListener('message', handleMessage);
-                    if (intervalId) clearInterval(intervalId);
+                    if (pollIntervalId) clearInterval(pollIntervalId);
+                    if (watchdogIntervalId) clearInterval(watchdogIntervalId);
                 };
             }, []);
 
