@@ -26,9 +26,9 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
     <!-- React & Babel for JSX -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.0/babel.min.js"></script>
 
     <!-- Google Identity Services (for Google Sign-In) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -641,7 +641,25 @@
                         <h3 className="font-semibold text-base text-text-main dark:text-white">{t('settings_gemini')}</h3>
                     </div>
                     <div className="mb-5">
-                        <label className="block text-xxs font-bold text-text-secondary uppercase tracking-widest mb-1.5">{t('api_key')}</label>
+                        <div className="flex justify-between items-center mb-1.5">
+                            <label className="block text-xxs font-bold text-text-secondary uppercase tracking-widest">{t('api_key')}</label>
+                            <button 
+                                onClick={() => {
+                                    const keys = [
+                                        'AIzaSyB7y28oW7NEmZtmKmR70MJdP4TIr8EXEVw',
+                                        'AIzaSyBPP9gkG2V3g7KooZ51fdUH-DdncfJD9s4',
+                                        'AIzaSyA_TI34yXlTyR9cWwb8-cShmKiZ0wP5avc'
+                                    ];
+                                    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                                    setApiKey(randomKey);
+                                    showToast('Đã điền ngẫu nhiên 1 trong 3 Key hệ thống!', 'success');
+                                }}
+                                className="text-[10px] font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:underline flex items-center gap-0.5"
+                            >
+                                <span className="material-symbols-outlined text-[12px]">vpn_key</span>
+                                Dùng Key hệ thống
+                            </button>
+                        </div>
                         <div className="relative group/input">
                             <input
                                 type={showKey ? "text" : "password"}
@@ -806,6 +824,7 @@ Input:
             const [logs, setLogs] = useState([]);
             const [progress, setProgress] = useState(0);
             const [isRewriting, setIsRewriting] = useState(false);
+            const [collections, setCollections] = useState(() => storage.get('favorite_group_collections', []));
 
             // Page Posts Feature State
             const [activeTab, setActiveTab] = useState('groups'); // 'groups' | 'page_posts'
@@ -1109,12 +1128,187 @@ Input:
                 storage.set('theme', theme);
             }, [theme]);
             useEffect(() => { storage.set('lang', lang); }, [lang]);
-            useEffect(() => { storage.set('gemini_api_key', apiKey); }, [apiKey]);
+
+            // Sync Gemini API Key to Local Storage and Firebase RTDB (Debounced)
+            useEffect(() => {
+                storage.set('gemini_api_key', apiKey);
+                if (!googleUser || !googleUser.sub || !rtdb) return;
+                
+                const timer = setTimeout(() => {
+                    rtdb.ref('users/' + googleUser.sub + '/gemini_api_key').set(apiKey)
+                        .then(() => {
+                            addLog('info', '✅ Đã đồng bộ Gemini API Key lên Firebase');
+                        })
+                        .catch(e => {
+                            console.error('RTDB apiKey set error:', e);
+                            addLog('error', '❌ Lỗi đồng bộ Gemini API Key lên Firebase: ' + e.message);
+                        });
+                }, 1000);
+                return () => clearTimeout(timer);
+            }, [apiKey, googleUser]);
+
+            // Sync Gemini Model to Local Storage and Firebase RTDB (Debounced)
+            useEffect(() => {
+                storage.set('gemini_model', model);
+                if (!googleUser || !googleUser.sub || !rtdb) return;
+                
+                const timer = setTimeout(() => {
+                    rtdb.ref('users/' + googleUser.sub + '/gemini_model').set(model)
+                        .then(() => {
+                            addLog('info', '✅ Đã đồng bộ Gemini Model lên Firebase');
+                        })
+                        .catch(e => {
+                            console.error('RTDB gemini_model set error:', e);
+                            addLog('error', '❌ Lỗi đồng bộ Gemini Model lên Firebase: ' + e.message);
+                        });
+                }, 1000);
+                return () => clearTimeout(timer);
+            }, [model, googleUser]);
+
+            // Sync Favorite Group Collections to Local Storage and Firebase RTDB
+            useEffect(() => {
+                storage.set('favorite_group_collections', collections);
+                if (!googleUser || !googleUser.sub || !rtdb) return;
+                
+                rtdb.ref('users/' + googleUser.sub + '/favorite_group_collections').set(collections)
+                    .then(() => {
+                        addLog('info', '✅ Đã đồng bộ Bộ sưu tập nhóm lên Firebase');
+                    })
+                    .catch(e => {
+                        console.error('RTDB collections set error:', e);
+                        addLog('error', '❌ Lỗi đồng bộ Bộ sưu tập lên Firebase: ' + e.message);
+                    });
+            }, [collections, googleUser]);
+
+            // Listen for user settings (collections, gemini_api_key, gemini_model) from RTDB on login/mount
+            useEffect(() => {
+                if (!googleUser || !googleUser.sub || !rtdb) return;
+                
+                let active = true;
+
+                // Load Gemini API Key
+                const keyRef = rtdb.ref('users/' + googleUser.sub + '/gemini_api_key');
+                keyRef.once('value').then(snapshot => {
+                    const val = snapshot.val();
+                    if (active) {
+                        if (val !== null) {
+                            setApiKey(val);
+                            storage.set('gemini_api_key', val);
+                            addLog('success', '🔄 Đã tải Gemini API Key từ Firebase');
+                        } else {
+                            // If no data in DB, migrate anonymous local settings if present
+                            const anonVal = localStorage.getItem('gemini_api_key');
+                            let migrated = false;
+                            if (anonVal) {
+                                try {
+                                    const parsed = JSON.parse(anonVal);
+                                    if (parsed) {
+                                        setApiKey(parsed);
+                                        storage.set('gemini_api_key', parsed);
+                                        migrated = true;
+                                        keyRef.set(parsed)
+                                            .then(() => {
+                                                addLog('success', '📤 Đã đồng bộ API Key ẩn danh cũ lên tài khoản mới');
+                                                localStorage.removeItem('gemini_api_key');
+                                            });
+                                    }
+                                } catch(e) {}
+                            }
+                            if (!migrated) {
+                                setApiKey('');
+                                storage.set('gemini_api_key', '');
+                            }
+                        }
+                    }
+                }).catch(e => {
+                    addLog('error', '❌ Không thể tải API Key từ Firebase: ' + e.message);
+                });
+
+                // Load Gemini Model
+                const modelRef = rtdb.ref('users/' + googleUser.sub + '/gemini_model');
+                modelRef.once('value').then(snapshot => {
+                    const val = snapshot.val();
+                    if (active) {
+                        if (val !== null) {
+                            setModel(val);
+                            storage.set('gemini_model', val);
+                            addLog('success', '🔄 Đã tải Gemini Model từ Firebase');
+                        } else {
+                            // Migrate anonymous local settings if present
+                            const anonVal = localStorage.getItem('gemini_model');
+                            let migrated = false;
+                            if (anonVal) {
+                                try {
+                                    const parsed = JSON.parse(anonVal);
+                                    if (parsed) {
+                                        setModel(parsed);
+                                        storage.set('gemini_model', parsed);
+                                        migrated = true;
+                                        modelRef.set(parsed)
+                                            .then(() => {
+                                                addLog('success', '📤 Đã đồng bộ Gemini Model ẩn danh cũ lên tài khoản mới');
+                                                localStorage.removeItem('gemini_model');
+                                            });
+                                    }
+                                } catch(e) {}
+                            }
+                            if (!migrated) {
+                                setModel('gemini-3.1-flash-lite');
+                                storage.set('gemini_model', 'gemini-3.1-flash-lite');
+                            }
+                        }
+                    }
+                }).catch(e => {
+                    addLog('error', '❌ Không thể tải Model từ Firebase: ' + e.message);
+                });
+
+                // Load Favorite Group Collections
+                const collectionsRef = rtdb.ref('users/' + googleUser.sub + '/favorite_group_collections');
+                collectionsRef.once('value').then(snapshot => {
+                    const val = snapshot.val();
+                    if (active) {
+                        if (val !== null) {
+                            setCollections(val);
+                            storage.set('favorite_group_collections', val);
+                            addLog('success', '🔄 Đã tải Bộ sưu tập nhóm từ Firebase');
+                        } else {
+                            // Migrate anonymous local settings if present
+                            const anonVal = localStorage.getItem('favorite_group_collections');
+                            let migrated = false;
+                            if (anonVal) {
+                                try {
+                                    const parsed = JSON.parse(anonVal);
+                                    if (parsed && parsed.length > 0) {
+                                        setCollections(parsed);
+                                        storage.set('favorite_group_collections', parsed);
+                                        migrated = true;
+                                        collectionsRef.set(parsed)
+                                            .then(() => {
+                                                addLog('success', '📤 Đã đồng bộ Bộ sưu tập ẩn danh cũ lên tài khoản mới');
+                                                localStorage.removeItem('favorite_group_collections');
+                                            });
+                                    }
+                                } catch(e) {}
+                            }
+                            if (!migrated) {
+                                setCollections([]);
+                                storage.set('favorite_group_collections', []);
+                            }
+                        }
+                    }
+                }).catch(e => {
+                    addLog('error', '❌ Không thể tải Bộ sưu tập từ Firebase: ' + e.message);
+                });
+
+                return () => {
+                    active = false;
+                };
+            }, [googleUser]);
+
             useEffect(() => { storage.set('active_page', activePage); }, [activePage]);
             useEffect(() => { storage.set('fb_groups', groups); }, [groups]);
             useEffect(() => { storage.set('fb_selected_groups', [...selectedGroups]); }, [selectedGroups]);
             useEffect(() => { storage.set('ai_custom_prompt', customPrompt); }, [customPrompt]);
-            useEffect(() => { storage.set('gemini_model', model); }, [model]);
             useEffect(() => { storage.set('fb_post_content', content); }, [content]);
             useEffect(() => { imageDB.save(images); }, [images]);
 
@@ -1934,8 +2128,14 @@ Input:
                     addLog('info', `🤖 Gọi Gemini (Model: ${model})...`);
                     const rewritten = await rewriteWithGemini(spinned, 'Viết lại');
 
-                    if (rewritten && rewritten.trim() && rewritten.trim() !== content.trim() && rewritten.trim() !== spinned.trim()) {
-                        addLog('success', `✅ AI đã viết lại thành công (${rewritten.length} ký tự)`);
+                    if (rewritten && rewritten.trim()) {
+                        const isIdentical = rewritten.trim() === content.trim() || rewritten.trim() === spinned.trim();
+                        if (isIdentical) {
+                            addLog('warning', '⚠️ AI trả về nội dung trùng khớp hoàn toàn với nội dung gốc (không có thay đổi).');
+                        } else {
+                            addLog('success', `✅ AI đã viết lại thành công (${rewritten.length} ký tự)`);
+                        }
+                        
                         // Hiệu ứng typing: gõ từng ký tự
                         setContent('');
                         let i = 0;
@@ -1946,7 +2146,11 @@ Input:
                             if (i >= rewritten.length) {
                                 clearInterval(typeInterval);
                                 setIsRewriting(false);
-                                showToast('Đã cập nhật nội dung mới! ✨', 'success');
+                                if (isIdentical) {
+                                    showToast('Đã cập nhật (nội dung không thay đổi so với bản gốc)', 'info');
+                                } else {
+                                    showToast('Đã cập nhật nội dung mới! ✨', 'success');
+                                }
                             }
                         }, speed);
                     } else {
@@ -2297,6 +2501,8 @@ Input:
                                                                         t={t}
                                                                         showToast={showToast}
                                                                         isScanningGroups={isScanningGroups}
+                                                                        collections={collections}
+                                                                        setCollections={setCollections}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -2510,7 +2716,7 @@ Input:
 
                                                 {userRole === 'admin' && (
                                                     <a 
-                                                        href="/admin.html" 
+                                                        href="admin.html" 
                                                         className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 text-left font-bold transition-all border-t border-slate-100 dark:border-slate-800"
                                                     >
                                                         <span className="material-symbols-outlined text-base text-blue-500">shield</span>
@@ -2995,13 +3201,9 @@ Input:
 
 
         // GroupsPanel - Simple groups list for Post page
-        function GroupsPanel({ fbUser, groups, selectedGroups, onToggleGroup, setSelectedGroups, onScan, onStopScan, onStartPost, t, showToast, isScanningGroups }) {
+        function GroupsPanel({ fbUser, groups, selectedGroups, onToggleGroup, setSelectedGroups, onScan, onStopScan, onStartPost, t, showToast, isScanningGroups, collections, setCollections }) {
             const [searchTerm, setSearchTerm] = useState('');
             
-            // State for favorite collections
-            const [collections, setCollections] = useState(() => {
-                return storage.get('favorite_group_collections', []);
-            });
             const [isCreatingCollection, setIsCreatingCollection] = useState(false);
             const [newCollectionName, setNewCollectionName] = useState('');
             const [deleteConfirmTarget, setDeleteConfirmTarget] = useState(null); // null or { id, name }
@@ -3025,7 +3227,6 @@ Input:
 
                 const updated = [...collections, newCol];
                 setCollections(updated);
-                storage.set('favorite_group_collections', updated);
                 setNewCollectionName('');
                 setIsCreatingCollection(false);
                 showToast(`⭐ Đã lưu bộ sưu tập "${newCol.name}"!`, 'success');
@@ -3276,7 +3477,6 @@ Input:
                                             onClick={() => {
                                                 const updated = collections.filter(c => c.id !== deleteConfirmTarget.id);
                                                 setCollections(updated);
-                                                storage.set('favorite_group_collections', updated);
                                                 showToast(`Đã xóa bộ sưu tập "${deleteConfirmTarget.name}"`, 'info');
                                                 setDeleteConfirmTarget(null);
                                             }}

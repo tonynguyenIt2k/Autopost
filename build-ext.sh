@@ -42,57 +42,13 @@ if [ -d "$EXT_SRC/icons" ]; then
     cp -r "$EXT_SRC/icons" "$BUILD_DIR/"
 fi
 
-# Obfuscate background.js
-echo "🔐 Obfuscating background.js (this may take a moment)..."
-npx --yes javascript-obfuscator "$EXT_SRC/background.js" \
-    --output "$BUILD_DIR/background.js" \
-    --compact true \
-    --control-flow-flattening true \
-    --control-flow-flattening-threshold 0.5 \
-    --dead-code-injection true \
-    --dead-code-injection-threshold 0.2 \
-    --identifier-names-generator hexadecimal \
-    --rename-globals false \
-    --self-defending true \
-    --string-array true \
-    --string-array-calls-transform true \
-    --string-array-encoding 'rc4' \
-    --string-array-threshold 0.75 \
-    --string-array-rotate true \
-    --string-array-shuffle true \
-    --split-strings true \
-    --split-strings-chunk-length 5 \
-    --transform-object-keys true \
-    --unicode-escape-sequence true \
-    --target browser-no-eval
+# Copy background.js directly (no obfuscation)
+echo "📋 Copying background.js..."
+cp "$EXT_SRC/background.js" "$BUILD_DIR/"
 
-echo "✅ background.js obfuscated"
-
-# Obfuscate content.js
-echo "🔐 Obfuscating content.js..."
-npx --yes javascript-obfuscator "$EXT_SRC/content.js" \
-    --output "$BUILD_DIR/content.js" \
-    --compact true \
-    --control-flow-flattening true \
-    --control-flow-flattening-threshold 0.5 \
-    --dead-code-injection true \
-    --dead-code-injection-threshold 0.2 \
-    --identifier-names-generator hexadecimal \
-    --rename-globals false \
-    --self-defending true \
-    --string-array true \
-    --string-array-calls-transform true \
-    --string-array-encoding 'rc4' \
-    --string-array-threshold 0.75 \
-    --string-array-rotate true \
-    --string-array-shuffle true \
-    --split-strings true \
-    --split-strings-chunk-length 5 \
-    --transform-object-keys true \
-    --unicode-escape-sequence true \
-    --target browser-no-eval
-
-echo "✅ content.js obfuscated"
+# Copy content.js directly (no obfuscation)
+echo "📋 Copying content.js..."
+cp "$EXT_SRC/content.js" "$BUILD_DIR/"
 
 # Create ZIP package
 echo "📦 Creating extension package..."
