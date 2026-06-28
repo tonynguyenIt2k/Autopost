@@ -544,7 +544,7 @@
         // ========================================
         // Component Definitions
         // ========================================
-        function SettingsDelay({ delayMin, setDelayMin, delayMax, setDelayMax, postingCountdown, t }) {
+        function SettingsDelay({ delayMin, setDelayMin, delayMax, setDelayMax, postingCountdown, postMode, setPostMode, t }) {
             const hasCountdown = postingCountdown && postingCountdown.current > 0;
             return (
                 <div className={`relative bg-card-light dark:bg-slate-800 rounded-3xl shadow-card ring-1 ring-border-light/50 p-6 flex flex-col justify-between hover:shadow-soft transition-all duration-500 overflow-hidden ${hasCountdown ? 'ring-2 ring-primary bg-gradient-to-br from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/20' : ''}`}>
@@ -553,7 +553,7 @@
                     )}
                     <div>
                         <div className="flex items-center justify-between mb-5">
-                            <div className="flex items-center gap-3">
+                             <div className="flex items-center gap-3">
                                 <div className={`p-1.5 rounded-md transition-colors duration-300 ${hasCountdown ? 'bg-rose-500 text-white animate-bounce' : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'}`}>
                                     <span className="material-symbols-outlined text-[20px]">{hasCountdown ? 'alarm_on' : 'timer'}</span>
                                 </div>
@@ -604,16 +604,33 @@
                                 </div>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div className="relative">
-                                    <label className="block text-xxs font-bold text-text-secondary uppercase tracking-widest mb-1.5">{t('min_sec')}</label>
-                                    <input type="number" value={delayMin} onChange={e => setDelayMin(parseInt(e.target.value))} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-border-light dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono text-center font-semibold text-text-main dark:text-white shadow-sm text-sm" />
+                            <>
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div className="relative">
+                                        <label className="block text-xxs font-bold text-text-secondary uppercase tracking-widest mb-1.5">{t('min_sec')}</label>
+                                        <input type="number" value={delayMin} onChange={e => setDelayMin(parseInt(e.target.value))} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-border-light dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono text-center font-semibold text-text-main dark:text-white shadow-sm text-sm" />
+                                    </div>
+                                    <div className="relative">
+                                        <label className="block text-xxs font-bold text-text-secondary uppercase tracking-widest mb-1.5">{t('max_sec')}</label>
+                                        <input type="number" value={delayMax} onChange={e => setDelayMax(parseInt(e.target.value))} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-border-light dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono text-center font-semibold text-text-main dark:text-white shadow-sm text-sm" />
+                                    </div>
                                 </div>
-                                <div className="relative">
-                                    <label className="block text-xxs font-bold text-text-secondary uppercase tracking-widest mb-1.5">{t('max_sec')}</label>
-                                    <input type="number" value={delayMax} onChange={e => setDelayMax(parseInt(e.target.value))} className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-border-light dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono text-center font-semibold text-text-main dark:text-white shadow-sm text-sm" />
+                                <div className="relative mb-4">
+                                    <label className="block text-xxs font-bold text-text-secondary uppercase tracking-widest mb-1.5">Chế độ đăng bài</label>
+                                    <select 
+                                        value={postMode || 'desktop'} 
+                                        onChange={e => {
+                                            const mode = e.target.value;
+                                            setPostMode(mode);
+                                            storage.set('fb_post_mode', mode);
+                                        }} 
+                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-border-light dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold text-text-main dark:text-white shadow-sm text-xs cursor-pointer outline-none transition-colors"
+                                    >
+                                        <option value="desktop">🖥️ Desktop Mode (Mô phỏng DOM)</option>
+                                        <option value="mobile">📱 Mobile Mode (Mbasic - Chạy ẩn)</option>
+                                    </select>
                                 </div>
-                            </div>
+                            </>
                         )}
                     </div>
                     <div className="flex items-start gap-2.5 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300 px-3.5 py-3 rounded-lg text-xs leading-relaxed border border-indigo-100 dark:border-indigo-800/50">
@@ -783,6 +800,7 @@
             const [isPosting, setIsPosting] = useState(false);
             const [safeDelayMin, setSafeDelayMin] = useState(() => storage.get('fb_delay_min', 60));
             const [safeDelayMax, setSafeDelayMax] = useState(() => storage.get('fb_delay_max', 120));
+            const [postMode, setPostMode] = useState(() => storage.get('fb_post_mode', 'desktop'));
             const [apiKey, setApiKey] = useState(() => storage.get('gemini_api_key', ''));
             const [model, setModel] = useState(() => storage.get('gemini_model', 'gemini-3.1-flash-lite'));
             const defaultPrompt = `Viết lại nội dung thành một bài quảng cáo Facebook hoàn chỉnh.
@@ -2221,7 +2239,8 @@ Input:
                         groupId: group.id,
                         groupUrl: group.url || `https://www.facebook.com/groups/${group.id}`,
                         content: uniqueContent, // Send STANDARD content (Extension handles CRLF)
-                        images: uniqueImages
+                        images: uniqueImages,
+                        postMode: postMode
                     }, '*');
 
                     addLog('info', `📤 Đang đăng lên: ${group.name} (Ảnh: ${uniqueImages.length})`);
@@ -2468,7 +2487,7 @@ Input:
                                                                         fbPages={fbPages}
                                                                     />
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                                        <SettingsDelay delayMin={safeDelayMin} setDelayMin={setSafeDelayMin} delayMax={safeDelayMax} setDelayMax={setSafeDelayMax} postingCountdown={postingCountdown} t={t} />
+                                                                        <SettingsDelay delayMin={safeDelayMin} setDelayMin={setSafeDelayMin} delayMax={safeDelayMax} setDelayMax={setSafeDelayMax} postingCountdown={postingCountdown} postMode={postMode} setPostMode={setPostMode} t={t} />
                                                                         <SettingsAI 
                                                                             apiKey={apiKey} 
                                                                             setApiKey={setApiKey} 
